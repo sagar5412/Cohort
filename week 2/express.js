@@ -15,8 +15,4 @@ app.get('/',(req,res)=>{
     res.send("Hi your answer is "+ans);
 })
 
-
-
-
-
 app.listen(3000); 
