@@ -9,4 +9,17 @@ app.get("/sum",(req,res)=>{
     res.send(sum.toString());
 })
 
+app.get("/SI",(req,res)=>{
+    const p=parseInt(req.query.p);
+    const t=parseInt(req.query.t);
+    const r=parseInt(req.query.r);
+    
+    const SI=(p*t*r)/100;
+    const amount=p+ SI;
+    res.send({
+        SI:SI,
+        amount:amount
+    })
+})
+
 app.listen(3000);

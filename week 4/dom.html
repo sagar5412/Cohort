@@ -8,6 +8,13 @@
 
 </head>
 <script>
+    let timeout;
+    function debounceCalculate(){   
+        clearTimeout(timeout);
+        timeout=setTimeout(()=>{
+            populateDiv();
+        },1000);
+    }
     async function populateDiv() {
         const a = document.getElementById("first").value;
         const b = document.getElementById("second").value;
@@ -16,16 +23,32 @@
         const ans= await response.text();
 
         document.getElementById("finalSum").innerHTML=ans;
+    }
 
-
+    async function calculateSI() {
+        const p = document.getElementById("principal").value;
+        const t = document.getElementById("time").value;
+        const r = document.getElementById("rate").value;
+        const response=await fetch("http://localhost:3000/SI?p="+p+"&t="+t+"&r="+r);
+        const ans= await response.json();
+        console.log(response);
+        console.log(ans);
+        document.getElementById("finalSI").innerHTML=ans.SI;
+        document.getElementById("Amount").innerHTML=ans.amount;
     }
 </script>
 
 <body>
-    <input type="text" placeholder="first number" id="first">
-    <input type="text" placeholder="second number" id="second">
-    <button onclick="populateDiv()">Sum</button>
+    <input oninput="debounceCalculate()" type="text" placeholder="first number" id="first">
+    <input oninput="debounceCalculate()" type="text" placeholder="second number" id="second">
+    <!-- <button onclick="debounceCalculate()">Sum</button> -->
     <div id="finalSum"></div>
+    <br><br>    
+    <input oninput="calculateSI()" type="text" placeholder="enter principal" id="principal">
+    <input oninput="calculateSI()" type="text" placeholder="enter time" id="time">
+    <input oninput="calculateSI()" type="text" placeholder="enter rate of interest" id="rate">
+    <div id="finalSI"></div>
+    <div id="Amount"></div>
 </body>
 
 </html>
