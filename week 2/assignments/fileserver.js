@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-const fileDir=path.join(__dirname,'files');
+const fileDir=path.join(__dirname,'..','files');
 
 app.get('/file',(req,res)=>{
     fs.readdir(fileDir,(err,files)=>{

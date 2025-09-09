@@ -7,7 +7,7 @@ app.use(bodyParser.json());
 app.get('/details',(req,res)=>{
     res.json({
         name: "sagar",
-        aga: 21
+        age: 21
     })
 })
 
