@@ -20,7 +20,7 @@ router.post("/signup", async (req, res) => {
 
 router.get("/courses", async (req, res) => {
   // Implement listing all courses logic
-  const response = await Course.findOne({});
+  const response = await Course.find({});
 
   res.json({
     course: response,
@@ -32,25 +32,25 @@ router.post("/courses/:courseId", userMiddleware, async (req, res) => {
   const courseId = req.params.courseId;
   const username = req.headers.username;
 
-  //   await User.updateOne(
-  //     {
-  //       username: username,
-  //     },
-  //     {
-  //       $push: {
-  //         purchasedCourses: new mongoose.Types.ObjectId(courseId),
-  //       },
-  //     }
-  //   );
+    await User.updateOne(
+      {
+        username: username,
+      },
+      {
+        $push: {
+          purchasedCourses: courseId,
+        },
+      }
+    );
 
-  const user = await User.findOne({ username });
+//   const user = await User.findOne({ username });
 
-  if (user.purchasedCourses.includes(courseId)) {
-    return res.status(400).json({ message: "Course already purchased" });
-  }
+//   if (user.purchasedCourses.includes(courseId)) {
+//     return res.status(400).json({ message: "Course already purchased" });
+//   }
 
-  user.purchasedCourses.push(courseId);
-  await user.save();
+//   user.purchasedCourses.push(courseId);
+//   await user.save();
 
   res.json({
     message: "purchase complete",
@@ -59,24 +59,24 @@ router.post("/courses/:courseId", userMiddleware, async (req, res) => {
 
 router.get("/purchasedCourses", userMiddleware, async (req, res) => {
   // Implement fetching purchased courses logic
-  //   const user = await User.findOne({
-  //     username: req.headers.username,
-  //   });
-  //   const courses = await Course.find({
-  //     _id: {
-  //       $in: user.purchasedCourses,
-  //     },
-  //   });
+    const user = await User.findOne({
+      username: req.headers.username,
+    });
+    const courses = await Course.find({
+      _id: {
+        $in: user.purchasedCourses,
+      },
+    });
 
-  //   res.json({
-  //     courses: courses,
-  //   });
+    res.json({
+      courses: courses,
+    });
 
-  const user = await User.findOne({
-    username: req.headers.username,
-  }).populate("purchasedCourses");
+//   const user = await User.findOne({
+//     username: req.headers.username,
+//   }).populate("purchasedCourses");
 
-  res.json({ courses: user.purchasedCourses });
+//   res.json({ courses: user.purchasedCourses });
 });
 
 module.exports = router;
