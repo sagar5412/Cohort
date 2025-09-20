@@ -5,9 +5,17 @@
 */
 
 function isAnagram(str1, str2) {
-    const temp=str=> str.toLowerCase().replace(/[^a-z0-9]/gi, "").split('').sort().join('');
+    const temp=function(str){
+      return str.toLowerCase().replace(/[^a-z0-9]/gi, "").split('').sort().join('');
+      
+    }
+    console.log(temp(str2));
+    console.log(str2);
 
-    return temp(str1)===temp(str2);
+    return console.log(temp(str1)===temp(str2));
 }
 
-module.exports = isAnagram;
+isAnagram("spar","rasp@");
+
+// g - global
+// i - case insensitive

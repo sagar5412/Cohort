@@ -10,7 +10,7 @@ const User=mongoose.model('Users', {
     password:String
 });
 
-app.post("/singup", async (req,res)=>{
+app.post("/signup", async (req,res)=>{
     const email=req.body.email;
     const password=req.body.password;
 
