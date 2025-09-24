@@ -34,7 +34,6 @@ async function userValidate(req, res, next) {
       });
     }
     req.validatedData = validatedData;
-    console.log(req.validatedData);
     next();
   } catch (error) {
     if (error instanceof zod.ZodError) {

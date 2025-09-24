@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { User,Account } = require("../db");
+const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/config");
 const {
   userValidate,
   userCheck,
   authMiddleware,
-  validateUpdateUser
+  validateUpdateUser,
 } = require("../middleware/user");
 const bcrypt = require("bcrypt");
 
@@ -22,18 +22,16 @@ router.post("/signup", userValidate, async (req, res) => {
       firstName,
       lastName,
       password: hashedPassword,
-
     });
     const userId = user._id;
-
     await Account.create({
       userId,
-      balance:1+Math.random()*10000
-    })
+      balance: 1 + Math.floor(1 + Math.random() * 10000),
+    });
 
     const token = jwt.sign(
       {
-        userId,
+        id: userId,
       },
       JWT_SECRET
     );
@@ -68,7 +66,7 @@ router.post("/signin", userCheck, (req, res) => {
   }
 });
 
-router.put("/", authMiddleware, async (req, res) => {
+router.put("/", authMiddleware, validateUpdateUser, async (req, res) => {
   try {
     const { firstName, lastName, username, password } = req.validatedData;
     const updateData = {};
@@ -100,13 +98,13 @@ router.put("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/bulk", authMiddleware,validateUpdateUser, async (req, res) => {
+router.get("/bulk", authMiddleware, async (req, res) => {
   const filter = req.query.filter || "";
   try {
-    if(!filter){
+    if (!filter) {
       return res.json({
-        user:[]
-      })
+        user: [],
+      });
     }
     const userData = await User.find({
       $or: [
@@ -125,12 +123,12 @@ router.get("/bulk", authMiddleware,validateUpdateUser, async (req, res) => {
       ],
     });
     res.json({
-      users: userData.map(user=>({
-        username:user.username,
-        firstName:user.firstName,
-        lastName:user.lastName,
-        _id:user._id
-      }))
+      users: userData.map((user) => ({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        _id: user._id,
+      })),
     });
   } catch (error) {
     console.log(error);
