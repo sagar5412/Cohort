@@ -1,5 +1,4 @@
 import { Hono } from 'hono'
-import { HtmlEscapedCallbackPhase } from 'hono/utils/html';
 
 const app = new Hono()
 
