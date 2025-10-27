@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
+import * as bcrypt from "bcryptjs";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -17,18 +18,26 @@ userRouter.post("/signup", async (c) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
+    if (!body.email || !body.password) {
+        return c.json({ error: "Email and password are required" }, 400);
+    }
     try {
+        const hashPassword = await bcrypt.hash(body.password, 10);
         const user = await prisma.user.create({
             data: {
                 email: body.email,
-                password: body.password,
+                password: hashPassword,
+                name: body.name || null
             },
         });
         const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-        return c.json({ user, token: jwt });
-    } catch (e:any) {
+        return c.json({ token: jwt });
+    } catch (e: any) {
         console.error("Signup error:", e);
-        return c.json({ error: e.message }, 500);
+        if (e.code === "P2002") { // Prisma unique constraint error
+            return c.json({ error: "Email already exists" }, 409);
+        }
+        return c.json({ error: e.message, stack: e.stack }, 500);
     }
 });
 
@@ -39,17 +48,29 @@ userRouter.post("/signin", async (c) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    const user = await prisma.user.findUnique({
-        where: {
-            email: body.email,
-            password: body.password,
-        },
-    });
-
-    if (!user || user.password !== body.password) {
-        return c.text("Invalid credentials", 403);
+    if (!body.email || !body.password) {
+        return c.json({ error: "Email and password are required" }, 400);
     }
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: body.email
+            },
+        });
 
-    const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
-    return c.json({ user, token: jwt });
+        if (!user) {
+            return c.json({ error: "Invalid credentials" }, 403);
+        }
+
+        const isPasswordValid = await bcrypt.compare(body.password, user.password);
+        if (!isPasswordValid) {
+            return c.json({ error: "Invalid credentials" }, 403);
+        }
+
+        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
+        return c.json({ token: jwt });
+    } catch (e:any) {
+        console.error("Signin error:", e);
+        return c.json({ error: e.message, stack: e.stack }, 500);
+    }
 });
