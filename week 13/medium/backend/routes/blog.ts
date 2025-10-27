@@ -28,11 +28,8 @@ blogRouter.get("/bulk", async (c) => {
                 updatedAt: true,
             },
         });
-        console.log("Fetched posts:", posts);
-        console.log("Number of posts:", posts.length);
         return c.json({ posts });
     } catch (error: any) {
-        console.error("Error fetching posts:", error);
         return c.json({ error: "Failed to fetch posts", details: error.message }, 500);
     }
 });
@@ -57,7 +54,6 @@ blogRouter.post("/",authMiddleware, async (c) => {
             id: post.id,
         });
     } catch (error) {
-        console.error("Error creating post:", error);
         return c.json({ error: "Failed to create post" }, 500);
     }
 })
@@ -82,7 +78,6 @@ blogRouter.put("/",authMiddleware, async (c) => {
         });
         return c.json({ msg: "Post updated" });
     } catch (error) {
-        console.error("Error updating post:", error);
         return c.json({ error: "Failed to update post" }, 500);
     }
 });
@@ -102,7 +97,6 @@ blogRouter.get("/:id",authMiddleware, async (c) => {
         });
         return c.json({ post });
     } catch (error) {
-        console.error("Error fetching post:", error);
         return c.json({ error: "Failed to fetch post" }, 500);
     }
 });

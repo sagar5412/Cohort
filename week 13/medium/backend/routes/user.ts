@@ -33,11 +33,10 @@ userRouter.post("/signup", async (c) => {
         const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
         return c.json({ token: jwt });
     } catch (e: any) {
-        console.error("Signup error:", e);
         if (e.code === "P2002") {
             return c.json({ error: "Email already exists" }, 409);
         }
-        return c.json({ error: e.message, stack: e.stack }, 500);
+        return c.json({ error: "Failed to create user" }, 500);
     }
 });
 
@@ -70,7 +69,6 @@ userRouter.post("/signin", async (c) => {
         const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
         return c.json({ token: jwt });
     } catch (e:any) {
-        console.error("Signin error:", e);
-        return c.json({ error: e.message, stack: e.stack }, 500);
+        return c.json({ error: "Failed to sign in" }, 500);
     }
 });

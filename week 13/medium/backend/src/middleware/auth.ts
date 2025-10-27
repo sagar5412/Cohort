@@ -1,5 +1,3 @@
-import { PrismaClient } from "@prisma/client/edge";
-import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
 import type { Context, Next } from "hono";
 
