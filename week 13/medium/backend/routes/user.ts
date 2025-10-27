@@ -34,7 +34,7 @@ userRouter.post("/signup", async (c) => {
         return c.json({ token: jwt });
     } catch (e: any) {
         console.error("Signup error:", e);
-        if (e.code === "P2002") { // Prisma unique constraint error
+        if (e.code === "P2002") {
             return c.json({ error: "Email already exists" }, 409);
         }
         return c.json({ error: e.message, stack: e.stack }, 500);
