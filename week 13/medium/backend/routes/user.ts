@@ -3,6 +3,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
 import * as bcrypt from "bcryptjs";
+import { signupInput, signinInput } from "@sagargk/medium-common-project";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -18,8 +19,9 @@ userRouter.post("/signup", async (c) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    if (!body.email || !body.password) {
-        return c.json({ error: "Email and password are required" }, 400);
+    const {success} = signupInput.safeParse(body);
+    if (!success) {
+        return c.json({ error: "Invalid input" }, 411);
     }
     try {
         const hashPassword = await bcrypt.hash(body.password, 10);
@@ -47,8 +49,9 @@ userRouter.post("/signin", async (c) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    if (!body.email || !body.password) {
-        return c.json({ error: "Email and password are required" }, 400);
+    const {success} = signinInput.safeParse(body);
+    if (!success) {
+        return c.json({ error: "Invalid input" }, 411);
     }
     try {
         const user = await prisma.user.findUnique({

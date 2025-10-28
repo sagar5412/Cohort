@@ -1,6 +1,16 @@
 {
-  "name": "common",
+  "name": "@sagargk/medium-common-project",
   "version": "1.0.0",
   "type": "module",
-  "main": "dist/index.js"
+  "main": "dist/index.js",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
 }
