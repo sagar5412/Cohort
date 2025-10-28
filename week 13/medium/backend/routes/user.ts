@@ -15,11 +15,11 @@ export const userRouter = new Hono<{
 userRouter.post("/signup", async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    const {success} = signupInput.safeParse(body);
+    const { success } = signupInput.safeParse(body);
     if (!success) {
         return c.json({ error: "Invalid input" }, 411);
     }
@@ -38,18 +38,20 @@ userRouter.post("/signup", async (c) => {
         if (e.code === "P2002") {
             return c.json({ error: "Email already exists" }, 409);
         }
-        return c.json({ error: "Failed to create user" }, 500);
+        return c.json({ error: e }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 });
 
 userRouter.post("/signin", async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    const {success} = signinInput.safeParse(body);
+    const { success } = signinInput.safeParse(body);
     if (!success) {
         return c.json({ error: "Invalid input" }, 411);
     }
@@ -71,7 +73,24 @@ userRouter.post("/signin", async (c) => {
 
         const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
         return c.json({ token: jwt });
-    } catch (e:any) {
+    } catch (e: any) {
         return c.json({ error: "Failed to sign in" }, 500);
+    } finally {
+        await prisma.$disconnect();
+    }
+});
+
+userRouter.get("/health", async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.PRISMA_ACCELERATE_URL,
+    }).$extends(withAccelerate());
+
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        return c.text("DB OK");
+    } catch (e: any) {
+        return c.json({ error: "DB Connection failed", details: e.message }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 });

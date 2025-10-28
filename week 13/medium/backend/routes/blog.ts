@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { authMiddleware } from "../src/middleware/auth";
-import { createBlogInput,updateBlogInput } from "@sagargk/medium-common-project";
+import { createBlogInput, updateBlogInput } from "@sagargk/medium-common-project";
 
 export const blogRouter = new Hono<{
     Bindings: {
@@ -15,7 +15,7 @@ export const blogRouter = new Hono<{
 blogRouter.get("/bulk", async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
     try {
         const posts = await prisma.post.findMany({
@@ -32,18 +32,20 @@ blogRouter.get("/bulk", async (c) => {
         return c.json({ posts });
     } catch (error: any) {
         return c.json({ error: "Failed to fetch posts", details: error.message }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 });
 
-blogRouter.post("/",authMiddleware, async (c) => {
+blogRouter.post("/", authMiddleware, async (c) => {
     const userId = c.get("id");
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-    const {success} = createBlogInput.safeParse(body);
+    const { success } = createBlogInput.safeParse(body);
     if (!success) {
         return c.json({ error: "Invalid input" }, 411);
     }
@@ -60,17 +62,19 @@ blogRouter.post("/",authMiddleware, async (c) => {
         });
     } catch (error) {
         return c.json({ error: "Failed to create post" }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 })
 
-blogRouter.put("/",authMiddleware, async (c) => {
+blogRouter.put("/", authMiddleware, async (c) => {
     const userId = c.get("id");
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
     const body = await c.req.json();
-    const {success} = updateBlogInput.safeParse(body);
+    const { success } = updateBlogInput.safeParse(body);
     if (!success) {
         return c.json({ error: "Invalid input" }, 411);
     }
@@ -88,14 +92,16 @@ blogRouter.put("/",authMiddleware, async (c) => {
         return c.json({ msg: "Post updated" });
     } catch (error) {
         return c.json({ error: "Failed to update post" }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 });
 
-blogRouter.get("/:id",authMiddleware, async (c) => {
+blogRouter.get("/:id", authMiddleware, async (c) => {
     const userId = c.get("id");
     const prisma = new PrismaClient({
         datasourceUrl:
-            c.env?.PRISMA_ACCELERATE_URL || process.env.PRISMA_ACCELERATE_URL,
+            c.env.PRISMA_ACCELERATE_URL,
     }).$extends(withAccelerate());
     const { id } = c.req.param();
     try {
@@ -107,5 +113,7 @@ blogRouter.get("/:id",authMiddleware, async (c) => {
         return c.json({ post });
     } catch (error) {
         return c.json({ error: "Failed to fetch post" }, 500);
+    } finally {
+        await prisma.$disconnect();
     }
 });
