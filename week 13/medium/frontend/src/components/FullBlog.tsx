@@ -20,9 +20,10 @@ export const FullBlog = ({ blog }: { blog: Blog }) => {
             <time>{date}</time>
           </div>
 
-          <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed">
-            {blog.content}
-          </div>
+          <div
+            className="prose prose-lg max-w-none text-gray-800 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+          />
         </div>
 
         <div className="md:col-span-4">
