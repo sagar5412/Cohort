@@ -23,10 +23,15 @@ blogRouter.get("/bulk", async (c) => {
                 id: true,
                 title: true,
                 content: true,
-                published: true,
-                authorId: true,
                 createdAt: true,
-                updatedAt: true,
+                author: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
             },
         });
         return c.json({ posts });

@@ -33,7 +33,7 @@ export const SignupAuth = () => {
 
       localStorage.setItem("token", `Bearer ${token}`);
       setSuccess(true);
-      setTimeout(() => navigate("/blog/bulk"), 800);
+      setTimeout(() => navigate("/blogs"), 800);
     } catch (err: any) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
