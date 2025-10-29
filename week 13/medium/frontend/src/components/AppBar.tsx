@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export const AppBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,9 +26,23 @@ export const AppBar = () => {
   }, []);
 
   return (
-    <div className="flex justify-between p-4 items-center">
-      <div className="text-xl font-bold">Medium</div>
-      <div className="relative">
+    <div
+      ref={dropdownRef}
+      className="relative flex justify-between p-4 items-center"
+    >
+      <Link to={"/blogs"}>
+        <div className="text-xl font-bold cursor-pointer">Medium</div>
+      </Link>
+
+      <div className="relative flex flex-row justify-center items-center gap-10">
+        <Link to={"/publish"} >
+          <div className="">
+            <button className="bg-gray-300 rounded-lg p-3 text-black cursor-pointer px-6 text-center">
+              Post
+            </button>
+          </div>
+        </Link>
+
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
@@ -48,7 +62,6 @@ export const AppBar = () => {
             </button>
           </div>
         )}
-        <div ref={dropdownRef} className="relative"></div>
       </div>
     </div>
   );

@@ -102,7 +102,7 @@ blogRouter.put("/", authMiddleware, async (c) => {
     }
 });
 
-blogRouter.get("/:id", authMiddleware, async (c) => {
+blogRouter.get("/:id", async (c) => {
     const userId = c.get("id");
     const prisma = new PrismaClient({
         datasourceUrl:
@@ -113,7 +113,18 @@ blogRouter.get("/:id", authMiddleware, async (c) => {
         const post = await prisma.post.findUnique({
             where: {
                 id: id,
-            }
+            },
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                createdAt: true,
+                author: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
         });
         return c.json({ post });
     } catch (error) {
