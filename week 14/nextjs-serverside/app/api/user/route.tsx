@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server"
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
 export function GET(){
     return Response.json({
@@ -9,8 +11,14 @@ export function GET(){
 
 export async function POST(req:NextRequest){
     const body = await req.json();
-    console.log(body);
+    const user = await prisma.user.create({
+        data:{
+            email:body.username,
+            password:body.password
+        }
+    })
     return Response.json({
-        msg:"you are logged in"
+        msg:"User created",
+        id:user.id
     })
 }
