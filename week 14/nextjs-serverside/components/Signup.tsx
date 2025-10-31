@@ -44,6 +44,7 @@ export function Signup() {
                     })
                     .then(function (response) {
                       console.log("User created successfully:", response.data);
+                      localStorage.setItem("username", username);
                       router.push("/");
                     });
                 }}
