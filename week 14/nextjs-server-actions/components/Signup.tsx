@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEventHandler, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { signup } from "@/app/actions/user";
 export function Signup() {
   const [username, setUsername] = useState("");
@@ -37,8 +37,9 @@ export function Signup() {
               <button
                 type="button"
                 className="mt-8 w-full text-white cursor-pointer bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
-                onClick={() => {
-                  signup(username,password);
+                onClick={async () => {
+                  await signup(username,password);
+                  redirect("/");
                 }}
               >
                 Sign in

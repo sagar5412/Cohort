@@ -13,5 +13,5 @@ export async function signup(email: string, password: string) {
   } catch (error: any) {
     throw new Error(error.message || "Signup failed");
   }
-  redirect("/");
+//   redirect("/");
 }
