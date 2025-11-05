@@ -6,7 +6,7 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-app.post("/todo",async (req,res)=>{
+app.post("/todos",async (req,res)=>{
     const createPayload = req.body;
     const parsedPlayload = createTodo.safeParse(createPayload);
     if(!parsedPlayload.success){
