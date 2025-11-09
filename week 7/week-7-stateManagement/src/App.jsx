@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { countAtom, evenSelector } from "./store/atoms/count";
+import { countAtom } from "./store/atoms/count";
+import { evenSelector } from "./store/selectors/evenCount";
 import {
   RecoilRoot,
   useRecoilState,
@@ -25,7 +26,7 @@ function App() {
 }
 
 function Counter() {
-  console.log("Counter rendered");
+  console.log("Counter");
   return (
     <div>
       <CountRender></CountRender>
@@ -36,7 +37,7 @@ function Counter() {
 }
 
 function CountRender() {
-  console.log("Count Rendered");
+  console.log("CountRendered");
   const count = useRecoilValue(countAtom);
   return <div>{count}</div>;
 }
