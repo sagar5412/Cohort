@@ -16,7 +16,7 @@ function App() {
 function MainApp() {
   const NotificationCount = useRecoilValue(notificationsAtom);
   const TotalNotificationCount = useRecoilValue(totalNotificationSelector);
-  if (!NotificationCount) return <div>Loading...</div>; // ✅ prevent crash
+  if (!NotificationCount) return <div>Loading...</div>;
   return (
     <div>
       <button>Home</button>
