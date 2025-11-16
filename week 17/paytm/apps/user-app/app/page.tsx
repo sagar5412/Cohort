@@ -1,7 +1,7 @@
-import { PrismaClient } from "@repo/db/client";
-
-export default async function Home() {
-  const prisma = new PrismaClient();
-  const user = await prisma.user.findFirst();
-  return <div>{JSON.stringify(user)}</div>;
+export default function Home() {
+  return (
+    <div className="bg-red-500">
+      <h1>Hello World</h1>
+    </div>
+  );
 }
