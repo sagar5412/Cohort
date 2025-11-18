@@ -1,81 +1,194 @@
-import { WebSocket, WebSocketServer } from "ws";
-import jwt from "jsonwebtoken";
+import { WebSocketServer, WebSocket, RawData } from "ws";
+import jwt from "jsonwebtoken"
 import { JWT_SECRET } from "@repo/backend-common/config"
 
-const wss = new WebSocketServer({ port: 8080 })
+const PORT = 8080;
 
-interface User {
-    ws: WebSocket,
-    rooms: string[],
-    userId: string
+interface AuthenticatedWebSocket extends WebSocket {
+    userId: string,
+    rooms: Set<string>
 }
 
-const users: User[] = [];
+interface JwtPayload {
+    id: string
+}
 
-function checkUser(token: string): string | null {
+interface JoinRoomMessage {
+    type: "join_room"
+    roomId: string,
+}
+
+interface LeaveRoomMessage {
+    type: "leave_room"
+    roomId: string
+}
+
+interface ChatRoomMessage {
+    type: "chat"
+    roomId: string
+    message: string
+}
+
+type ClientMessage = JoinRoomMessage | LeaveRoomMessage | ChatRoomMessage;
+
+interface ServerChatMessage {
+    type: "chat"
+    roomId: string
+    message: string
+    userId: string
+    timestamp: number
+}
+
+interface ErrorMessage {
+    type: "error"
+    message: string
+}
+
+type ServerMessage = ServerChatMessage | ErrorMessage;
+
+class RoomManager {
+    private rooms = new Map<string, Set<AuthenticatedWebSocket>>();
+
+    join(roomId: string, ws: AuthenticatedWebSocket): void {
+        ws.rooms.add(roomId);
+        if (!this.rooms.get(roomId)) {
+            this.rooms.set(roomId, new Set());
+        }
+        this.rooms.get(roomId)!.add(ws);
+    }
+
+    leave(roomId: string, ws: AuthenticatedWebSocket): void {
+        ws.rooms.delete(roomId);
+        this.rooms.get(roomId)?.delete(ws);
+    }
+
+    leaveAll(ws: AuthenticatedWebSocket): void {
+        for (const roomId of ws.rooms) {
+            this.leave(roomId, ws);
+        }
+    }
+
+    broadcast(roomId: string, message: ServerMessage, sender: AuthenticatedWebSocket): void {
+        const room = this.rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+        const payload = JSON.stringify(message);
+        room.forEach(client => {
+            if (client !== sender && client.readyState === WebSocket.OPEN) {
+                client.send(payload);
+            }
+        })
+    }
+}
+
+const wss = new WebSocketServer({ port: PORT })
+const roomManager = new RoomManager();
+
+function verifyToken(token: string): string | null {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        if (typeof decoded == "string") {
-            return null;
-        }
-        if (!decoded || !decoded.id) {
-            return null;
-        }
-        return decoded.id;
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+        return decoded?.id || null
     } catch (error) {
         return null;
     }
-
 }
 
-wss.on("connection", (ws, request) => {
-    const url = request.url;
-    if (!url) {
+function sendError(ws: WebSocket, message: string): void {
+    if (ws.readyState === WebSocket.OPEN) {
+        const error: ErrorMessage = { type: "error", message }
+        ws.send(JSON.stringify(error));
+    }
+}
+
+wss.on("connection", (ws: AuthenticatedWebSocket, request) => {
+    const url = new URL(request.url ?? "", `http://${request.headers.host}`)
+    const token = url.searchParams.get("token");
+
+    if (!token) {
+        sendError(ws, "Authentication required")
+        ws.close(1008, "Missing token")
         return;
     }
-    const queryParams = new URLSearchParams(url.split('?')[1]);
-    const token = queryParams.get('token') || "";
-    const userId = checkUser(token);
 
+    const userId = verifyToken(token);
     if (!userId) {
-        wss.close();
+        sendError(ws, "Invalid token");
+        ws.close(1008, "Invalid authentication")
         return;
     }
 
-    users.push({
-        ws,
-        userId,
-        rooms: []
+    ws.userId = userId;
+    ws.rooms = new Set();
+
+    ws.on("message", (rawData: RawData) => {
+        let message: ClientMessage;
+        try {
+            message = JSON.parse(rawData.toString())
+        } catch (error) {
+            sendError(ws, "Invalid JSON")
+            return;
+        }
+
+        if (!message.type || typeof message.type !== "string") {
+            sendError(ws, "Invalid message format")
+            return;
+        }
+
+        try {
+            switch (message.type) {
+                case "join_room": {
+                    const { roomId } = message as JoinRoomMessage;
+                    if (!roomId || typeof roomId !== "string") {
+                        sendError(ws, "Invalid roomId")
+                        return;
+                    }
+                    roomManager.join(roomId, ws);
+                    break;
+                }
+                case "leave_room": {
+                    const { roomId } = message as LeaveRoomMessage;
+                    if (!roomId || typeof roomId !== "string") {
+                        sendError(ws, "Invalid roomId")
+                        return;
+                    }
+                    roomManager.leave(roomId, ws);
+                    break;
+                }
+                case "chat": {
+                    const { roomId, message: msg } = message as ChatRoomMessage;
+                    if (!roomId || !msg || typeof roomId !== "string" || typeof msg !== "string") {
+                        sendError(ws, "Invalid Chat message format")
+                        return;
+                    }
+                    if (!ws.rooms.has(roomId)) {
+                        sendError(ws, "Must join room first")
+                        return;
+                    }
+                    const chatMessage: ServerChatMessage = {
+                        type: "chat",
+                        roomId,
+                        message: msg,
+                        userId: ws.userId,
+                        timestamp: Date.now()
+                    }
+                    roomManager.broadcast(roomId, chatMessage, ws)
+                    break;
+                }
+                default:
+                    sendError(ws, `Unknown type ${message}`);
+                    break;
+            }
+        } catch (error) {
+            sendError(ws, "Internal server")
+        }
     })
 
-    ws.on("message", (data) => {
-        const parsedData = JSON.parse(data as unknown as string);
-        if (parsedData.type === "join_room") {
-            const user = users.find(x => x.ws === ws);
-            user?.rooms.push(parsedData.roomId)
-        }
+    ws.on("close", () => {
+        roomManager.leaveAll(ws);
+    })
 
-        if (parsedData.type === "leave_room") {
-            const user = users.find(x => x.ws === ws);
-            if (!user) {
-                return;
-            }
-            user.rooms = user?.rooms.filter(x => x === parsedData.room);
-        }
-
-        if (parsedData.type === "chat") {
-            const roomId = parsedData.roomId;
-            const message = parsedData.message;
-
-            users.forEach(user => {
-                if (user.rooms.includes(roomId)) {
-                    user.ws.send(JSON.stringify({
-                        type: "chat",
-                        message,
-                        roomId
-                    }))
-                }
-            })
-        }
+    ws.on("error", (error) => {
+        console.error(`WebSocket error for user ${ws.userId}:`, error);
     })
 })
