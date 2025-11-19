@@ -119,7 +119,7 @@ app.get("/chat/:roomId", async (req, res) => {
         const roomId = Number(req.params.roomId);
         const messages = await db.chat.findMany({
             where: {
-                id: roomId
+                roomId: roomId
             },
             orderBy: {
                 id: "desc"
@@ -131,9 +131,28 @@ app.get("/chat/:roomId", async (req, res) => {
         })
     } catch (error) {
         res.json({
-            msg:"error"
+            msg: "error"
         })
     }
+})
+
+app.get("/room/:slug", async (req, res) => {
+    try {
+        const slug = req.params.slug;
+        const room = await db.room.findFirst({
+            where: {
+                slug
+            }
+        })
+        return res.json({
+            room
+        })
+    } catch (error) {
+        return res.json({
+            error
+        })
+    }
+
 })
 
 app.listen(3001);
