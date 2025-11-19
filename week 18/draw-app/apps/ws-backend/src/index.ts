@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import jwt from "jsonwebtoken"
 import { JWT_SECRET } from "@repo/backend-common/config"
-
+import db from "@repo/db/client"
 const PORT = 8080;
 
 interface AuthenticatedWebSocket extends WebSocket {
@@ -68,12 +68,13 @@ class RoomManager {
         }
     }
 
-    broadcast(roomId: string, message: ServerMessage, sender: AuthenticatedWebSocket): void {
+    broadcast(roomId: string, message: ServerChatMessage, sender: AuthenticatedWebSocket): void {
         const room = this.rooms.get(roomId);
         if (!room) {
             return;
         }
         const payload = JSON.stringify(message);
+        sendTodb(roomId, message, sender);
         room.forEach(client => {
             if (client !== sender && client.readyState === WebSocket.OPEN) {
                 client.send(payload);
@@ -84,6 +85,20 @@ class RoomManager {
 
 const wss = new WebSocketServer({ port: PORT })
 const roomManager = new RoomManager();
+
+async function sendTodb(roomId: string, message: ServerMessage, ws: AuthenticatedWebSocket) {
+    try {
+        const send = await db.chat.create({
+            data: {
+                roomId: Number(roomId),
+                message: message.message,
+                userId: ws.userId
+            }
+        })
+    } catch (error) {
+        sendError(ws, "error while db")
+    }
+}
 
 function verifyToken(token: string): string | null {
     try {

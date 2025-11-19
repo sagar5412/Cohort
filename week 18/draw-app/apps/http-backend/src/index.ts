@@ -112,8 +112,28 @@ app.post("/room", middleware, async (req, res) => {
             msg: "Room already exists"
         })
     }
+})
 
-
+app.get("/chat/:roomId", async (req, res) => {
+    try {
+        const roomId = Number(req.params.roomId);
+        const messages = await db.chat.findMany({
+            where: {
+                id: roomId
+            },
+            orderBy: {
+                id: "desc"
+            },
+            take: 50
+        })
+        res.status(200).json({
+            messages
+        })
+    } catch (error) {
+        res.json({
+            msg:"error"
+        })
+    }
 })
 
 app.listen(3001);
