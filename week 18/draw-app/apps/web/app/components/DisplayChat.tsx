@@ -22,17 +22,18 @@ export function DisplayChat({ messages, id }: {
                 const parsedData = JSON.parse(event.data);
                 console.log("parsed data", parsedData);
                 if (parsedData.type === "chat") {
-                    setMessage(c => [...c, parsedData.messages]);
+                    setMessage(c => [...c, {message:parsedData.message}]);
                 }
             }
         }
     }, [socket, loading, id])
     return (
-        <div>{message.map(m => <div>{m.message}</div>)}
+        <div>{message.map((m,i) => <div key={i}>{m.message}</div>)}
             <input type="text" name="" id="" value={currentMessage} onChange={(e) => {
                 setCurrentMessage(e.target.value);
             }} />
             <button onClick={() => {
+                setMessage(c=>[...c,{message:currentMessage}])
                 socket?.send(JSON.stringify({
                     type: "chat",
                     roomId: `${id}`,
