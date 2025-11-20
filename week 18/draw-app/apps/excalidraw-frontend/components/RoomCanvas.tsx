@@ -24,7 +24,11 @@ export function RoomCanvas({ slug }: { slug: string }) {
     useEffect(() => {
         if (roomId) {
             const token = localStorage.getItem("token");
-            const ws = new WebSocket(`${WS_URL}?token=${token}`);
+            if (!token) {
+                return;
+            }
+            const tokenValue = token.split(" ")[1];
+            const ws = new WebSocket(`${WS_URL}?token=${tokenValue}`);
 
             ws.onopen = () => {
                 setSocket(ws);

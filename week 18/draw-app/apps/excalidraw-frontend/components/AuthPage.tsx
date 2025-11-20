@@ -10,8 +10,6 @@ interface AuthPageProps {
     isSignin: boolean;
 }
 
-
-
 interface Input {
     name: string;
     email: string;
@@ -38,7 +36,7 @@ export function AuthPage({ isSignin }: AuthPageProps) {
             );
 
             const token = res.data.token;
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", `Bearer ${token}`);
 
             router.push("/dashboard")
         } catch (e) {

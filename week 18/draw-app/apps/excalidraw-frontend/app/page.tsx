@@ -34,14 +34,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link
                 className="inline-flex h-12 items-center justify-center rounded-md bg-indigo-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-700 disabled:pointer-events-none disabled:opacity-50"
-                href="/canvas"
+                href="/signup"
               >
                 Start Drawing
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
                 className="inline-flex h-12 items-center justify-center rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-8 text-sm font-medium shadow-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-300"
-                href="#"
+                href="https://github.com/sagar5412/Cohort/tree/master/week%2018/draw-app/apps/excalidraw-frontend"
               >
                 View on GitHub
               </Link>
