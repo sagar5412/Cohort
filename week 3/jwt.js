@@ -25,10 +25,10 @@ const ALL_USERS = [
 ];
 
 function userExists(username, password) {
-  let user_exists=false;
-  for(let user of ALL_USERS){
-    if(user.username==username && user.password==password){
-        user_exists=true;
+  let user_exists = false;
+  for (let user of ALL_USERS) {
+    if (user.username == username && user.password == password) {
+      user_exists = true;
     }
   }
   return user_exists;
@@ -55,9 +55,9 @@ app.get("/users", function (req, res) {
   try {
     const decoded = jwt.verify(token, jwtPassword);
     const username = decoded.username;
-    
+
     res.json({
-        ALL_USERS
+      ALL_USERS
     })
   } catch (err) {
     return res.status(403).json({
